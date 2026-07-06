@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PATLU — CZ's On-Chain Twin</title>
+<meta name="description" content="$PATLU — the meme CZ himself admitted to starting, now on-chain on BNB Smart Chain.">
+<link rel="icon" href="baldtrans.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          patlu: {
+            void: '#0B0E11',
+            panel: '#12161D',
+            panel2: '#1A1F28',
+            line: '#262C36',
+            gold: '#F0B90B',
+            goldDeep: '#C9960A',
+            green: '#0ECB81',
+            red: '#F6465D',
+            ink: '#F5F1E8',
+            muted: '#8B93A1',
+          },
+        },
+        fontFamily: {
+          display: ['"Baloo 2"', 'cursive'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #0B0E11;
+    color: #F5F1E8;
+    font-family: 'Inter', sans-serif;
+  }
+
+  ::selection { background: #F0B90B; color: #0B0E11; }
+
+  /* grain overlay */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .font-display { font-family: 'Baloo 2', cursive; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* layered, color-tinted shadows */
+  .shadow-panel {
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.03) inset,
+      0 20px 40px -20px rgba(0,0,0,0.6),
+      0 2px 8px rgba(0,0,0,0.5);
+  }
+  .shadow-gold {
+    box-shadow:
+      0 6px 20px -6px rgba(240,185,11,0.45),
+      0 2px 6px rgba(240,185,11,0.25),
+      0 0 0 1px rgba(240,185,11,0.15) inset;
+  }
+  .shadow-card {
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 12px 30px -14px rgba(0,0,0,0.7);
+  }
+  .shadow-float {
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.65),
+      0 10px 24px -10px rgba(240,185,11,0.12);
+  }
+
+  .ease-spring { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+
+  a, button { transition-property: transform, opacity, box-shadow, background-color, border-color, color; transition-duration: 300ms; }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #F0B90B;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-primary:active { transform: translateY(0px) scale(0.98); }
+  .btn-ghost:hover { transform: translateY(-2px); border-color: #F0B90B; }
+  .btn-ghost:active { transform: scale(0.98); }
+
+  .link-underline {
+    background-image: linear-gradient(#F0B90B, #F0B90B);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 2px;
+    transition: background-size 400ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .link-underline:hover { background-size: 100% 2px; }
+
+  /* hero title gradient + layered depth */
+  .title-patlu {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F5F1E8 38%, #F0B90B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 6px 0 rgba(11,14,17,0.55)) drop-shadow(0 26px 40px rgba(0,0,0,0.55));
+    letter-spacing: -0.03em;
+  }
+
+  /* candlestick ticker */
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker-scroll 32s linear infinite;
+  }
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .candle { display:flex; flex-direction:column; align-items:center; justify-content:center; width: 14px; margin: 0 5px; }
+  .candle .wick { width: 2px; background: currentColor; opacity:0.55; }
+  .candle .body { width: 10px; border-radius: 1px; background: currentColor; }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1); }
+  .reveal-in { opacity: 1; transform: translateY(0); }
+
+  /* hero entrance */
+  .enter { opacity: 0; transform: translateY(18px); animation: enter-in 900ms cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes enter-in { to { opacity: 1; transform: translateY(0); } }
+
+  .gallery-card img { transition: transform 500ms cubic-bezier(0.16,1,0.3,1); }
+  .gallery-card:hover img { transform: scale(1.07); }
+  .gallery-card { transition: box-shadow 400ms cubic-bezier(0.16,1,0.3,1); }
+  .gallery-card:hover { box-shadow: 0 20px 40px -16px rgba(240,185,11,0.25), 0 12px 30px -14px rgba(0,0,0,0.7); }
+
+  .img-overlay {
+    background: linear-gradient(to top, rgba(11,14,17,0.92) 0%, rgba(11,14,17,0.25) 45%, rgba(11,14,17,0) 70%);
+  }
+  .img-tint { mix-blend-mode: multiply; background: linear-gradient(160deg, rgba(240,185,11,0.12), rgba(14,203,129,0.08)); }
+
+  /* gallery marquee */
+  .marquee-fade {
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
+  .marquee-row { overflow: hidden; }
+  .marquee-track { display: flex; gap: 1rem; width: max-content; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .marquee-track.marquee-left { animation-name: marquee-left; }
+  .marquee-track.marquee-right { animation-name: marquee-right; }
+  @keyframes marquee-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes marquee-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+  .marquee-row:hover .marquee-track { animation-play-state: paused; }
+
+  .copied-pop { animation: pop 260ms cubic-bezier(0.16,1,0.3,1); }
+  @keyframes pop { 0% { transform: scale(0.9); opacity:0.6;} 60%{ transform: scale(1.03);} 100% { transform: scale(1); opacity:1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track, .marquee-track, .enter, .reveal, .copied-pop { animation: none !important; }
+    .reveal, .enter { opacity: 1; transform: none; }
+    * { transition-duration: 1ms !important; }
+  }
+
+  .mobile-panel { transition: opacity 300ms cubic-bezier(0.16,1,0.3,1), transform 300ms cubic-bezier(0.16,1,0.3,1); }
+</style>
+</head>
+<body class="font-body antialiased">
+
+<div class="grain"></div>
+
+<!-- NAV -->
+<header class="fixed top-0 inset-x-0 z-50">
+  <div class="backdrop-blur-md bg-patlu-void/80 border-b border-patlu-line/70">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 shrink-0">
+        <img src="baldtrans.png" alt="PATLU logo" class="h-9 w-9 object-contain drop-shadow-[0_2px_6px_rgba(240,185,11,0.35)]">
+        <span class="font-display font-800 text-xl tracking-tight text-patlu-ink">PATLU</span>
+      </a>
+
+      <div class="hidden lg:flex items-center gap-8 font-medium text-sm text-patlu-muted">
+        <a href="#story" class="link-underline hover:text-patlu-ink pb-0.5">The Story</a>
+        <a href="#tokenomics" class="link-underline hover:text-patlu-ink pb-0.5">Tokenomics</a>
+        <a href="#gallery" class="link-underline hover:text-patlu-ink pb-0.5">Gallery</a>
+      </div>
+
+      <div class="hidden lg:flex items-center gap-3">
+        <button onclick="copyCA(this)" data-ca="0xe30757d0Da7A2846393dB98828F39d7BB6A54444"
+          class="ca-copy-btn flex items-center gap-2 font-mono text-xs text-patlu-muted bg-patlu-panel border border-patlu-line rounded-full px-3.5 py-2 hover:border-patlu-gold/60 hover:text-patlu-ink">
+          <span class="text-patlu-gold">CA</span>
+          <span>0xe307...4444</span>
+          <svg class="copy-icon w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <a href="https://x.com/patlubsc" target="_blank" rel="noopener" class="btn-ghost border border-patlu-line rounded-full p-2.5 text-patlu-ink hover:bg-patlu-panel" aria-label="PATLU on X">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <a href="https://four.meme/en/token/0xe30757d0da7a2846393db98828f39d7bb6a54444" target="_blank" rel="noopener"
+          class="btn-primary shadow-gold ease-spring font-semibold text-sm bg-patlu-gold text-patlu-void rounded-full px-5 py-2.5">
+          Buy $PATLU
+        </a>
+      </div>
+
+      <button id="menuBtn" class="lg:hidden text-patlu-ink p-2" aria-label="Toggle menu" aria-expanded="false">
+        <svg id="iconOpen" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg id="iconClose" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </nav>
+  </div>
+
+  <div id="mobilePanel" class="mobile-panel lg:hidden opacity-0 -translate-y-2 pointer-events-none absolute inset-x-0 top-16 bg-patlu-panel border-b border-patlu-line px-6 py-6 flex flex-col gap-5">
+    <a href="#story" class="text-patlu-ink font-medium">The Story</a>
+    <a href="#tokenomics" class="text-patlu-ink font-medium">Tokenomics</a>
+    <a href="#gallery" class="text-patlu-ink font-medium">Gallery</a>
+    <div class="flex items-center gap-3 pt-2 border-t border-patlu-line">
+      <a href="https://x.com/patlubsc" target="_blank" rel="noopener" class="border border-patlu-line rounded-full p-2.5 text-patlu-ink"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a href="https://four.meme/en/token/0xe30757d0da7a2846393db98828f39d7bb6a54444" target="_blank" rel="noopener" class="flex-1 text-center font-semibold text-sm bg-patlu-gold text-patlu-void rounded-full px-5 py-2.5">Buy $PATLU</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-patlu-void">
+  <video class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline poster="baldtrans.png">
+    <source src="hf_20260706_211941_73bcffa3-c963-482f-96bd-96beb2c3ebdf.mp4" type="video/mp4">
+  </video>
+  <div class="absolute inset-0 img-overlay"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-patlu-void/70 via-transparent to-patlu-void/20"></div>
+
+  <div class="relative z-10 h-full flex flex-col items-center justify-end text-center px-5 pb-24 sm:pb-28">
+    <p class="enter font-mono text-xs sm:text-sm tracking-[0.25em] text-patlu-gold uppercase mb-4" style="animation-delay:80ms">BNB Chain · $PATLU</p>
+    <h1 class="enter font-display font-800 title-patlu leading-[0.9] text-[4.2rem] sm:text-[7rem] lg:text-[9rem]" style="animation-delay:180ms">PATLU</h1>
+    <p class="enter font-display font-700 text-2xl sm:text-4xl text-patlu-ink mt-3" style="animation-delay:320ms">CZ's on-chain twin</p>
+
+    <div class="enter flex flex-wrap items-center justify-center gap-3 mt-8" style="animation-delay:540ms">
+      <button onclick="copyCA(this)" data-ca="0xe30757d0Da7A2846393dB98828F39d7BB6A54444"
+        class="ca-copy-btn flex items-center gap-2 font-mono text-xs sm:text-sm bg-patlu-panel/90 border border-patlu-line rounded-full pl-4 pr-3 py-2.5 text-patlu-ink hover:border-patlu-gold/60">
+        <span class="text-patlu-gold">CA</span>
+        <span>0xe30757d0Da7A2846393dB98828F39d7BB6A54444</span>
+        <svg class="copy-icon w-3.5 h-3.5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+
+    <div class="enter flex flex-wrap items-center justify-center gap-3 mt-4" style="animation-delay:640ms">
+      <a href="https://four.meme/en/token/0xe30757d0da7a2846393db98828f39d7bb6a54444" target="_blank" rel="noopener"
+        class="btn-primary shadow-gold ease-spring font-semibold bg-patlu-gold text-patlu-void rounded-full px-7 py-3">Buy $PATLU</a>
+      <a href="https://x.com/patlubsc" target="_blank" rel="noopener"
+        class="btn-ghost border border-patlu-line rounded-full px-7 py-3 font-semibold text-patlu-ink hover:bg-patlu-panel/70">Follow @patlubsc</a>
+    </div>
+  </div>
+
+  <!-- candlestick ticker strip -->
+  <div class="absolute bottom-0 inset-x-0 z-20 h-12 sm:h-14 bg-patlu-void/85 border-t border-patlu-line backdrop-blur-sm overflow-hidden flex items-center">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section id="story" class="relative bg-patlu-void py-24 sm:py-32 px-5 sm:px-8">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-[0.95fr_1.05fr] gap-14 lg:gap-20 items-start">
+
+    <div class="reveal">
+      <p class="font-mono text-xs tracking-[0.25em] text-patlu-gold uppercase mb-4">The Story</p>
+      <h2 class="font-display font-800 text-4xl sm:text-5xl text-patlu-ink leading-[1.05] mb-6">The meme CZ admitted<br class="hidden sm:block"> to starting himself.</h2>
+      <p class="text-patlu-muted leading-[1.7] mb-10 max-w-md">Every great token needs an origin candle. This one starts with the man himself — screenshotted, quoted, and never able to deny it since.</p>
+
+      <ol class="space-y-6 border-l border-patlu-line pl-6">
+        <li class="relative">
+          <span class="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-patlu-gold shadow-gold"></span>
+          <p class="font-mono text-xs text-patlu-gold mb-1">2023</p>
+          <p class="text-patlu-ink">@cz_binance posts the Patlu meme, laughing at the resemblance.</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-patlu-line"></span>
+          <p class="font-mono text-xs text-patlu-muted mb-1">2023 – 2025</p>
+          <p class="text-patlu-ink">Crypto Twitter keeps the comparison alive. The twin never fades.</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-patlu-green shadow-[0_0_0_4px_rgba(14,203,129,0.15)]"></span>
+          <p class="font-mono text-xs text-patlu-green mb-1">Today</p>
+          <p class="text-patlu-ink">The twin goes on-chain. $PATLU launches on BNB Smart Chain.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="reveal">
+      <div class="bg-patlu-panel border border-patlu-line rounded-3xl p-5 sm:p-6 shadow-float max-w-lg mx-auto lg:mx-0">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-patlu-gold to-patlu-goldDeep flex items-center justify-center font-display font-800 text-patlu-void text-lg shrink-0">CZ</div>
+          <div class="min-w-0">
+            <p class="text-patlu-ink font-semibold leading-tight truncate">CZ 🔶 Binance</p>
+            <p class="text-patlu-muted text-sm leading-tight">@cz_binance</p>
+          </div>
+          <svg class="w-5 h-5 ml-auto text-patlu-muted shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden mb-4 relative">
+          <img src="FpftLhsXgAA-3kw.png" alt="Motu Patlu screenshot CZ shared in his tweet" class="w-full h-auto object-cover">
+          <div class="absolute inset-0 img-tint pointer-events-none"></div>
+        </div>
+
+        <p class="text-patlu-ink leading-[1.7] mb-4">2 years ago, <span class="text-patlu-gold">@cz_binance</span> shared a Patlu meme — found it hilarious and eerily similar to himself, admitting to having started that trend himself.</p>
+
+        <div class="flex items-center justify-between text-sm text-patlu-muted pt-4 border-t border-patlu-line">
+          <span class="font-mono">Jan 2023 · via X</span>
+          <a href="https://x.com/cz_binance/status/1628030662190964736?s=20" target="_blank" rel="noopener" class="link-underline text-patlu-ink font-medium pb-0.5">View original post ↗</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TOKENOMICS -->
+<section id="tokenomics" class="relative bg-patlu-panel py-24 sm:py-32 px-5 sm:px-8 border-y border-patlu-line">
+  <div class="max-w-6xl mx-auto">
+    <div class="reveal bg-patlu-panel2 border border-patlu-line rounded-2xl shadow-card p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-4 mb-8 max-w-3xl mx-auto">
+      <span class="font-mono text-xs text-patlu-gold uppercase tracking-wider shrink-0">Contract</span>
+      <span class="font-mono text-sm sm:text-base text-patlu-ink break-all text-center sm:text-left flex-1">0xe30757d0Da7A2846393dB98828F39d7BB6A54444</span>
+      <button onclick="copyCA(this)" data-ca="0xe30757d0Da7A2846393dB98828F39d7BB6A54444"
+        class="ca-copy-btn shrink-0 flex items-center gap-2 font-semibold text-sm bg-patlu-gold text-patlu-void rounded-full px-5 py-2.5 btn-primary shadow-gold ease-spring">
+        <span>Copy</span>
+        <svg class="copy-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+
+    <p class="reveal text-center text-patlu-muted text-xs mt-10 max-w-lg mx-auto leading-relaxed">$PATLU is a community meme token made for entertainment. It has no intrinsic value and is not affiliated with, endorsed by, or connected to CZ or Binance.</p>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery" class="relative bg-patlu-void py-24 sm:py-32 px-5 sm:px-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="reveal text-center mb-14">
+      <h2 class="font-display font-800 text-5xl sm:text-7xl lg:text-8xl text-patlu-ink tracking-tight">GALLERY</h2>
+    </div>
+
+    <div class="reveal marquee-fade space-y-4 sm:space-y-5">
+      <div class="marquee-row overflow-hidden">
+        <div class="marquee-track marquee-left" style="animation-duration: 46s;">
+          <div class="gallery-card relative shrink-0 w-[280px] sm:w-[340px] lg:w-[400px] aspect-video rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230337_9b25ce78-8c63-4ce2-b4b5-76bf3e1bb604.png" loading="lazy" alt="Patlu and CZ pointing at each other" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230731_2b5d6d26-29df-4f59-9839-3d1e606b843a.png" loading="lazy" alt="We finally caught CZ meme" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230133_81456404-a88f-4e83-afe1-42a9c6d8429c.png" loading="lazy" alt="Height comparison between Patlu and CZ" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_235409_9a85fa62-09ba-4afb-b980-8e1a9c068166.png" loading="lazy" alt="CZ versus Cool CZ comparison" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_132710_605e1d13-9dd5-4a7c-a9b0-93d2db672129.png" loading="lazy" alt="Patlu riding a rocketing green candle" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_132954_0d1efe3b-3780-4b07-a153-0e6c7cc951fd.png" loading="lazy" alt="Patlu rolling dice at a casino table" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133324_6e1d51f2-04b6-4004-beef-98547446f6bb.png" loading="lazy" alt="Patlu making it rain with cash" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <!-- duplicate for seamless loop -->
+          <div class="gallery-card relative shrink-0 w-[280px] sm:w-[340px] lg:w-[400px] aspect-video rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230337_9b25ce78-8c63-4ce2-b4b5-76bf3e1bb604.png" loading="lazy" alt="Patlu and CZ pointing at each other" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230731_2b5d6d26-29df-4f59-9839-3d1e606b843a.png" loading="lazy" alt="We finally caught CZ meme" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_230133_81456404-a88f-4e83-afe1-42a9c6d8429c.png" loading="lazy" alt="Height comparison between Patlu and CZ" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_235409_9a85fa62-09ba-4afb-b980-8e1a9c068166.png" loading="lazy" alt="CZ versus Cool CZ comparison" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_132710_605e1d13-9dd5-4a7c-a9b0-93d2db672129.png" loading="lazy" alt="Patlu riding a rocketing green candle" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_132954_0d1efe3b-3780-4b07-a153-0e6c7cc951fd.png" loading="lazy" alt="Patlu rolling dice at a casino table" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133324_6e1d51f2-04b6-4004-beef-98547446f6bb.png" loading="lazy" alt="Patlu making it rain with cash" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="marquee-row overflow-hidden">
+        <div class="marquee-track marquee-right" style="animation-duration: 54s;">
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133331_440c1094-094a-4393-8b15-2bcbffde054d.png" loading="lazy" alt="Patlu sitting on stacks of cash" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_224059_a1e3888d-fdf9-4272-bffb-c9c2e287019e.png" loading="lazy" alt="Patlu with laser eyes hacking a laptop" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_224351_4dbf9501-0fc4-4e5d-912b-4d2aa7c153a5.png" loading="lazy" alt="Patlu raging in a green explosion" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133133_81a5a74b-bc43-4ec4-a258-a8d0b835b371.png" loading="lazy" alt="Patlu washing dishes at home" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[170px] sm:w-[205px] lg:w-[230px] aspect-[3/4] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_231244_a18c248a-16be-407c-9c97-35601d589f93.png" loading="lazy" alt="Twin babies numbered one and two in a stroller" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_092552_15385b86-8b94-450c-8c42-da3c1b82dfb7.png" loading="lazy" alt="Man looking in the mirror and seeing Patlu" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="hf_20260706_211601_56c2ad01-98b6-4a09-b3c6-266599636e22.png" loading="lazy" alt="Patlu winking" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <!-- duplicate for seamless loop -->
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133331_440c1094-094a-4393-8b15-2bcbffde054d.png" loading="lazy" alt="Patlu sitting on stacks of cash" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_224059_a1e3888d-fdf9-4272-bffb-c9c2e287019e.png" loading="lazy" alt="Patlu with laser eyes hacking a laptop" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_224351_4dbf9501-0fc4-4e5d-912b-4d2aa7c153a5.png" loading="lazy" alt="Patlu raging in a green explosion" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_133133_81a5a74b-bc43-4ec4-a258-a8d0b835b371.png" loading="lazy" alt="Patlu washing dishes at home" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[170px] sm:w-[205px] lg:w-[230px] aspect-[3/4] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_231244_a18c248a-16be-407c-9c97-35601d589f93.png" loading="lazy" alt="Twin babies numbered one and two in a stroller" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="archive%20%281%29/hf_20260705_092552_15385b86-8b94-450c-8c42-da3c1b82dfb7.png" loading="lazy" alt="Man looking in the mirror and seeing Patlu" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+          <div class="gallery-card relative shrink-0 w-[190px] sm:w-[230px] lg:w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border border-patlu-line shadow-card">
+            <img src="hf_20260706_211601_56c2ad01-98b6-4a09-b3c6-266599636e22.png" loading="lazy" alt="Patlu winking" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 img-tint pointer-events-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="relative bg-patlu-panel border-t border-patlu-line px-5 sm:px-8 py-14">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-8 mb-10">
+      <div class="flex items-center gap-3">
+        <img src="baldtrans.png" alt="Patlu" class="h-10 w-10 object-contain rounded-full bg-patlu-panel2 border border-patlu-line p-1">
+        <span class="font-display text-patlu-muted text-lg">⇄</span>
+        <img src="cztrans.png" alt="CZ" class="h-10 w-10 object-contain object-top rounded-full bg-patlu-panel2 border border-patlu-line p-0.5">
+        <span class="font-mono text-xs text-patlu-muted uppercase tracking-widest ml-2">patlu ⇄ cz</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="https://x.com/patlubsc" target="_blank" rel="noopener" class="btn-ghost flex items-center gap-2 border border-patlu-line rounded-full px-4 py-2 text-sm text-patlu-ink hover:bg-patlu-panel2">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          @patlubsc
+        </a>
+        <button onclick="copyCA(this)" data-ca="0xe30757d0Da7A2846393dB98828F39d7BB6A54444" class="ca-copy-btn hidden sm:flex items-center gap-2 font-mono text-xs text-patlu-muted border border-patlu-line rounded-full px-4 py-2 hover:border-patlu-gold/60 hover:text-patlu-ink">
+          <span>0xe307...4444</span>
+          <svg class="copy-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="pt-8 border-t border-patlu-line flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-patlu-muted text-xs text-center sm:text-left">© 2026 $PATLU. Meme token, no financial advice, no affiliation with CZ or Binance.</p>
+      <p class="font-mono text-xs text-patlu-muted">BNB Smart Chain · BEP-20</p>
+    </div>
+  </div>
+</footer>
+
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] bg-patlu-gold text-patlu-void font-semibold text-sm px-5 py-2.5 rounded-full opacity-0 pointer-events-none shadow-gold">Copied contract address</div>
+
+<script>
+  // mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  const mobilePanel = document.getElementById('mobilePanel');
+  const iconOpen = document.getElementById('iconOpen');
+  const iconClose = document.getElementById('iconClose');
+  let menuOpen = false;
+  menuBtn.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    menuBtn.setAttribute('aria-expanded', String(menuOpen));
+    if (menuOpen) {
+      mobilePanel.classList.remove('opacity-0', '-translate-y-2', 'pointer-events-none');
+      iconOpen.classList.add('hidden');
+      iconClose.classList.remove('hidden');
+    } else {
+      mobilePanel.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+      iconOpen.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    }
+  });
+  document.querySelectorAll('#mobilePanel a').forEach(a => a.addEventListener('click', () => {
+    menuOpen = false;
+    mobilePanel.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+    iconOpen.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+  }));
+
+  // copy CA
+  function copyCA(btn) {
+    const ca = btn.getAttribute('data-ca');
+    const done = () => {
+      const toast = document.getElementById('toast');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('copied-pop');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('copied-pop');
+      }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ca).then(done).catch(done);
+    } else {
+      done();
+    }
+  }
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+  revealEls.forEach(el => io.observe(el));
+
+  // candlestick ticker generation
+  (function buildTicker() {
+    const track = document.getElementById('tickerTrack');
+    const words = ['PATLU', "CZ'S ON-CHAIN TWIN", 'BNB CHAIN', '4 YEARS RUNNING', '$PATLU'];
+    let seed = 7;
+    const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    function makeSegment() {
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < 40; i++) {
+        const up = rand() > 0.45;
+        const bodyH = 8 + Math.floor(rand() * 26);
+        const wickH = bodyH + 6 + Math.floor(rand() * 10);
+        const c = document.createElement('div');
+        c.className = 'candle';
+        c.style.color = up ? '#0ECB81' : '#F6465D';
+        c.style.height = wickH + 'px';
+        c.innerHTML = '<div class="wick" style="height:' + wickH + 'px"></div>';
+        const body = document.createElement('div');
+        body.className = 'body';
+        body.style.height = bodyH + 'px';
+        body.style.marginTop = (-(wickH + bodyH) / 2) + 'px';
+        c.style.position = 'relative';
+        c.innerHTML = '';
+        const wick = document.createElement('div');
+        wick.className = 'wick';
+        wick.style.height = wickH + 'px';
+        wick.style.position = 'absolute';
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'body';
+        bodyEl.style.height = bodyH + 'px';
+        c.style.height = wickH + 'px';
+        c.appendChild(wick);
+        c.appendChild(bodyEl);
+        frag.appendChild(c);
+
+        if (i % 8 === 0) {
+          const label = document.createElement('span');
+          label.className = 'font-mono text-[11px] tracking-[0.2em] text-patlu-muted mx-4 self-center';
+          label.textContent = words[(i / 8) % words.length];
+          frag.appendChild(label);
+        }
+      }
+      return frag;
+    }
+    track.appendChild(makeSegment());
+    track.appendChild(makeSegment());
+  })();
+</script>
+
+</body>
+</html>
